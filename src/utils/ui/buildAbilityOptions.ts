@@ -4,6 +4,7 @@ import { type CalcdexPokemon, type CalcdexPokemonAlt, type CalcdexPokemonUsageAl
 import { dedupeArray, formatId } from '@showdex/utils/core';
 import { detectGenFromFormat, detectLegacyGen, legalLockedFormat } from '@showdex/utils/dex';
 import { percentage } from '@showdex/utils/humanize';
+import { partitionBannedOptions } from './partitionBannedOptions';
 import {
   type CalcdexPokemonUsageAltSorter,
   detectUsageAlt,
@@ -199,5 +200,8 @@ export const buildAbilityOptions = (
     });
   }
 
-  return options;
+  return partitionBannedOptions(format, 'ability', options, {
+    label: translateHeader('Banned'),
+    hide: !(showAll || !legalLockedFormat(format) || !abilities?.length),
+  });
 };

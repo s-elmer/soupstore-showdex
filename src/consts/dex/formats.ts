@@ -244,6 +244,7 @@ export const FormatLabels: Record<string, string> = {
   sharedpowerrandombattle: 'Shared Power Randoms',
   sharingiscaring: 'Sharing is Caring',
   sketchmons: 'Sketchmons',
+  soupstoreseason4: 'Soup Store Season 4',
   spikemuthcup: 'Spikemuth Cup',
   stabmons: 'STABmons', // SameTypeAttackBonus
   stabmonsmixandmega: 'STABmons Mix & Mega',
@@ -473,6 +474,7 @@ export const LegalLockedFormats: (string | RegExp)[] = [
   /battlestadium/, // e.g., 'battlestadiumsingles', 'battlestadiumdoublesseries13',
   /^bdsp/, // e.g., 'bdspou'
   /^champions/, // e.g., 'championsou', 'championsvgc2026'
+  /^soupstore/, // e.g., 'soupstoreseason4'
   'computergeneratedteams',
   'doubleslc',
   'doublesou',
@@ -512,6 +514,7 @@ export const LegalLockedFormats: (string | RegExp)[] = [
  * @since 1.2.0
  */
 export const FormatSortPriorities: string[] = [
+  'soupstore', // Soup Store draft league formats, e.g., 'soupstoreseason4'
   'ou',
   'champions', // note: ranked right under OU per request; sortPresetsByFormat() special-cases the match so a
   // "Champions OU" label doesn't get swallowed by the 'ou' entry above (see its priorityIndex())

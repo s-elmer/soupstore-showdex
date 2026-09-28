@@ -1,3 +1,32 @@
+# Soup Store Showdex
+
+A fork of [Showdex](https://github.com/doshidak/showdex) for the [Soup Store](https://soupstore.dev) draft league. It runs only on the league's client at **https://play.soupstore.dev** (it does nothing on the official Pokémon Showdown) and supports the **[Gen 9] Soup Store Season 4** format: Champions data and mechanics with mainline Level 100 EVs/IVs, no Tera, and the league's banlist.
+
+## Install
+
+Download the latest build from the [releases page](https://github.com/s-elmer/soupstore-showdex/releases).
+
+- **Chrome, Edge, Brave and other Chromium browsers:** unzip the `*.chrome.zip`, open `chrome://extensions`, turn on *Developer mode*, choose *Load unpacked* and select the unzipped folder.
+- **Firefox:** open the `*.firefox.xpi` file in Firefox and confirm the install. Firefox only installs signed extensions, so this needs an xpi signed through Mozilla's unlisted add-on signing (until then, use Firefox Developer Edition/Nightly with `xpinstall.signatures.required` off, or `about:debugging` > *Load Temporary Add-on*).
+
+Reload play.soupstore.dev after installing.
+
+## What's different from Showdex
+
+- Only matches `play.soupstore.dev`, and uses its own storage and IDs so it can't clash with the official Showdex.
+- Season 4 uses the Champions dex and calc mechanics but mainline stats (Level 100, EVs, IVs), and hides Tera.
+- Banned species, moves, items and abilities from the format's banlist are moved to a separate *Banned* group in the dropdowns (or hidden when the format's legal-lock is on), and banned combinations are detected. This needs the ban tables from the Soup Store client's build (`metagame*Bans`); against older builds nothing is filtered.
+- Opposing Pokémon are auto-filled from bundled sets: Smogon Dex Champions Battle Stadium Singles first (converted to EVs and Level 100), then Gen 9 National Dex Singles. No sets or usage stats are downloaded at runtime. To refresh them, see `scripts/fetch-smogon-dex-sets.mjs` and `scripts/bake-soupstore-sets.mjs`.
+- Remote Bakedex downloads are turned off.
+
+## Releasing
+
+Push a tag like `v1.4.3`. `.github/workflows/release.yml` runs the tests, builds the Chrome and Firefox packages and attaches them to a GitHub Release.
+
+---
+
+# Showdex (upstream README)
+
 <p align="center">
   <img alt="showdex-icon" width="250px" src="./src/assets/favicons/showdex-1024.png">
 </p>

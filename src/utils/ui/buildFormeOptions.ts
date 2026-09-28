@@ -5,6 +5,7 @@ import { formatId, nonEmptyObject } from '@showdex/utils/core';
 import {
   detectDoublesFormat,
   getDexForFormat,
+  getFormatBans,
   guessTableFormatKey,
   guessTableFormatSlice,
   parseBattleFormat,
@@ -139,6 +140,13 @@ export const buildFormeOptions = (
   const ubersUuBans = sourceTable?.ubersUUBans || BattleTeambuilderTable.ubersUUBans;
   const ndDoublesBans = sourceTable?.ndDoublesBans || BattleTeambuilderTable.ndDoublesBans;
   const monotypeBans = sourceTable?.monotypeBans || BattleTeambuilderTable.monotypeBans;
+
+  // Soup Store formats: bans emitted by the Soup Store client (e.g., 'soupstoreseason4')
+  const formatBans = getFormatBans(format);
+
+  if (nonEmptyObject(formatBans?.species)) {
+    hammerTime(formatBans.species);
+  }
 
   if (format.includes('ubersuu') && nonEmptyObject(ubersUuBans)) {
     // l.debug('yeeting', Object.keys(ubersUuBans).length, 'mon from ubersuwu', Object.keys(ubersUuBans));

@@ -1,7 +1,7 @@
 {
   "manifest_version": "<-- auto-filled; do not edit -->",
 
-  "name": "Showdex",
+  "name": "Soup Store Showdex",
   "version": "<-- auto-filled; do not edit -->",
   "description": "<-- auto-filled; do not edit -->",
   "author": "<-- auto-filled; do not edit -->",
@@ -9,7 +9,7 @@
 
   "applications": {
     "gecko": {
-      "id": "showdex@tize.io",
+      "id": "showdex@soupstore.dev",
       "strict_min_version": "78.0",
       "permissions": [
         "clipboardRead",
@@ -19,15 +19,12 @@
   },
 
   "permissions": [
-    "*://play.pokemonshowdown.com/*",
-    "*://*.psim.us/*",
-    "*://play.radicalred.net/*"
+    "*://play.soupstore.dev/*"
   ],
 
   "host_permissions": [
-    "https://play.pokemonshowdown.com/*",
-    "https://pkmn.github.io/*",
-    "https://bake.dex.tize.io/*"
+    "https://play.soupstore.dev/*",
+    "https://pkmn.github.io/*"
   ],
 
   "externally_connectable": {

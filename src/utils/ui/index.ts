@@ -11,3 +11,4 @@ export * from './determineColorScheme';
 export * from './formatDamageAmounts';
 export * from './formatStatBoost';
 export * from './parseHotkeyCombo';
+export * from './partitionBannedOptions';

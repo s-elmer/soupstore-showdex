@@ -50,7 +50,7 @@ import {
   writeClipboardText,
 } from '@showdex/utils/core';
 import { logger } from '@showdex/utils/debug';
-import { hasNickname, legalLockedFormat, toggleableAbility } from '@showdex/utils/dex';
+import { findFormatViolations, hasNickname, isTeraBanned, legalLockedFormat, toggleableAbility } from '@showdex/utils/dex';
 import { useRandomUuid } from '@showdex/utils/hooks';
 import { openSmogonDex } from '@showdex/utils/host';
 import { capitalize } from '@showdex/utils/humanize';
@@ -130,6 +130,22 @@ export const PokeInfo = ({
 
   const pokemonKey = pokemon?.calcdexId || pokemon?.name || randomUuid || '???';
   const friendlyPokemonName = pokemon?.speciesForme || pokemon?.name || pokemonKey;
+
+  // banned species, abilities, items, moves & combinations in formats that provide a banlist (i.e., Soup Store)
+  const formatViolations = React.useMemo(() => findFormatViolations(format, {
+    speciesForme: pokemon?.speciesForme,
+    ability: pokemon?.dirtyAbility ?? pokemon?.ability,
+    item: pokemon?.dirtyItem ?? pokemon?.item,
+    moves: pokemon?.moves,
+  }), [
+    format,
+    pokemon?.speciesForme,
+    pokemon?.dirtyAbility,
+    pokemon?.ability,
+    pokemon?.dirtyItem,
+    pokemon?.item,
+    pokemon?.moves,
+  ]);
   const nickname = (hasNickname(pokemon) && settings?.showNicknames && pokemon.name) || null;
 
   const hpPercentage = calcPokemonHpPercentage(pokemon);
@@ -540,6 +556,16 @@ export const PokeInfo = ({
       )}
       style={style}
     >
+      {
+        !!formatViolations.length &&
+        <div
+          className={styles.banNotice}
+          title={t('poke.info.banned.tooltip', 'Banned in this format') as string}
+        >
+          {t('poke.info.banned.label', 'Banned:')} {formatViolations.join(', ')}
+        </div>
+      }
+
       <div className={styles.row}>
         <div className={styles.piconContainer}>
           <PiconButton
@@ -726,7 +752,7 @@ export const PokeInfo = ({
                   ? containerSize
                   : null
               )}
-              highlight={gen < 9 || format?.includes('champions') || !pokemon?.terastallized}
+              highlight={gen < 9 || isTeraBanned(format) || !pokemon?.terastallized}
               highlightTypes={pokemon?.types}
               revealedTypes={pokemon?.types}
               readOnly={!editableTypes}
@@ -734,7 +760,7 @@ export const PokeInfo = ({
             />
 
             {
-              (!!pokemon?.speciesForme && gen > 8 && !format?.includes('champions')) &&
+              (!!pokemon?.speciesForme && gen > 8 && !isTeraBanned(format)) &&
               <PokeTypeField
                 className={cx(styles.typesField, styles.teraTypeField)}
                 label={t('poke.info.teraType.aria', { pokemon: friendlyPokemonName }) as string}

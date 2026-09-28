@@ -326,6 +326,63 @@ declare namespace Showdown {
     ubersUUBans?: {
       [speciesFormeId: string]: 1;
     };
+
+    /**
+     * Banned species formes per metagame, keyed by the genless format ID (e.g., `'soupstoreseason4'`).
+     *
+     * * Emitted by `pokemon-showdown-client`'s `build-indexes`.
+     */
+    metagameBans?: {
+      [formatId: string]: {
+        [speciesFormeId: string]: 1;
+      };
+    };
+
+    /**
+     * Banned moves per metagame, keyed by the genless format ID (e.g., `'soupstoreseason4'`).
+     *
+     * * Only emitted by the Soup Store client.
+     */
+    metagameMoveBans?: {
+      [formatId: string]: {
+        [moveId: string]: 1;
+      };
+    };
+
+    /**
+     * Banned items per metagame, keyed by the genless format ID (e.g., `'soupstoreseason4'`).
+     *
+     * * Only emitted by the Soup Store client.
+     */
+    metagameItemBans?: {
+      [formatId: string]: {
+        [itemId: string]: 1;
+      };
+    };
+
+    /**
+     * Banned abilities per metagame, keyed by the genless format ID (e.g., `'soupstoreseason4'`).
+     *
+     * * Only emitted by the Soup Store client.
+     */
+    metagameAbilityBans?: {
+      [formatId: string]: {
+        [abilityId: string]: 1;
+      };
+    };
+
+    /**
+     * Banned combinations (e.g., a Mega Stone + a move) per metagame, keyed by the genless format ID.
+     *
+     * * Each combination is a list of IDs, all of which must be present on a Pokemon for the ban to apply.
+     *   - Each ID is prefixed with what it is, e.g., `['item:alakazite', 'move:nastyplot']`.
+     *   - Species are compared against the Pokemon's base forme ID or its full forme ID,
+     *     e.g., `['species:zygarde10', 'ability:powerconstruct']`.
+     * * Only emitted by the Soup Store client.
+     */
+    metagameComplexBans?: {
+      [formatId: string]: string[][];
+    };
   }
 
   type BattleTeambuilderTableFormat =

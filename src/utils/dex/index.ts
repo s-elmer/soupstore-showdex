@@ -38,3 +38,5 @@ export * from './shouldIgnoreItem';
 export * from './toggleableAbility';
 export * from './convertStatPoints';
 export * from './isMegaStone';
+export * from './formatFlags';
+export * from './getFormatBans';

@@ -13,6 +13,7 @@ import {
   legalLockedFormat,
 } from '@showdex/utils/dex';
 import { percentage } from '@showdex/utils/humanize';
+import { partitionBannedOptions } from './partitionBannedOptions';
 import {
   type CalcdexPokemonUsageAltSorter,
   detectUsageAlt,
@@ -336,5 +337,8 @@ export const buildMoveOptions = (
     });
   }
 
-  return options;
+  return partitionBannedOptions(format, 'move', options, {
+    label: translateHeader('Banned'),
+    hide: !showAllMoves,
+  });
 };

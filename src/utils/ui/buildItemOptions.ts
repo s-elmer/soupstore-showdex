@@ -5,6 +5,7 @@ import { type CalcdexPokemon, type CalcdexPokemonAlt, type CalcdexPokemonUsageAl
 import { formatId, nonEmptyObject } from '@showdex/utils/core';
 import { detectGenFromFormat, guessTableFormatKey } from '@showdex/utils/dex';
 import { percentage } from '@showdex/utils/humanize';
+import { partitionBannedOptions } from './partitionBannedOptions';
 import {
   type CalcdexPokemonUsageAltSorter,
   detectUsageAlt,
@@ -310,5 +311,5 @@ export const buildItemOptions = (
     });
   }
 
-  return options;
+  return partitionBannedOptions(format, 'item', options, { label: translateHeader('Banned') });
 };

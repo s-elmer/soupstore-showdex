@@ -15,6 +15,7 @@ import { useUserLadderQuery } from '@showdex/redux/services';
 import { useColorScheme } from '@showdex/redux/store';
 import { usePlayerTitle } from '@showdex/utils/app';
 import { formatId } from '@showdex/utils/core';
+import { detectSoupStoreFormat } from '@showdex/utils/dex';
 import { logger } from '@showdex/utils/debug';
 import { capitalize } from '@showdex/utils/humanize';
 import { useCalcdexContext } from '../CalcdexContext';
@@ -82,6 +83,8 @@ export const PlayerInfo = ({
   const skipLadderQuery = !settings?.showPlayerRatings
     || !playerId
     || !format
+    // PS's ladder has no entries for Soup Store formats
+    || detectSoupStoreFormat(format)
     || !!ratingFromBattle;
 
   React.useEffect(() => {

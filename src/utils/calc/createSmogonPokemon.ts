@@ -19,6 +19,7 @@ import {
   detectGenFromFormat,
   detectLegacyGen,
   getGenDexForFormat,
+  isTeraBanned,
   notFullyEvolved,
 } from '@showdex/utils/dex';
 import { calcPokemonHpPercentage } from './calcPokemonHp';
@@ -127,7 +128,7 @@ export const createSmogonPokemon = (
     level: pokemon.level,
     gender: pokemon.gender,
 
-    teraType: (!format?.includes('champions') && pokemon.terastallized && (pokemon.dirtyTeraType || pokemon.teraType)) || null,
+    teraType: (!isTeraBanned(format) && pokemon.terastallized && (pokemon.dirtyTeraType || pokemon.teraType)) || null,
     status,
     toxicCounter: pokemon.toxicCounter,
 
