@@ -311,5 +311,5 @@ export const buildItemOptions = (
     });
   }
 
-  return partitionBannedOptions(format, 'item', options, { label: translateHeader('Banned') });
+  return partitionBannedOptions(format, 'item', options, translateHeader('Banned'));
 };

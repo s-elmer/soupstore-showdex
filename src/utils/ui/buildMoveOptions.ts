@@ -337,8 +337,5 @@ export const buildMoveOptions = (
     });
   }
 
-  return partitionBannedOptions(format, 'move', options, {
-    label: translateHeader('Banned'),
-    hide: !showAllMoves,
-  });
+  return partitionBannedOptions(format, 'move', options, translateHeader('Banned'));
 };

@@ -23,19 +23,13 @@ describe('partitionBannedOptions()', () => {
   });
 
   it('moves banned options into a trailing group, dropping emptied groups & duplicates', () => {
-    expect(partitionBannedOptions(SOUP, 'move', options, { label: 'Banned' })).toEqual([
+    expect(partitionBannedOptions(SOUP, 'move', options, 'Banned')).toEqual([
       { label: 'Learnset', options: [{ value: 'Earthquake' }] },
       { label: 'Banned', options: [{ value: 'Assist' }, { value: 'Hidden Power Fire' }] },
     ]);
   });
 
-  it('hides banned options entirely when asked to', () => {
-    expect(partitionBannedOptions(SOUP, 'move', options, { label: 'Banned', hide: true })).toEqual([
-      { label: 'Learnset', options: [{ value: 'Earthquake' }] },
-    ]);
-  });
-
   it('leaves other formats alone', () => {
-    expect(partitionBannedOptions('gen9ou', 'move', options, { label: 'Banned' })).toBe(options);
+    expect(partitionBannedOptions('gen9ou', 'move', options, 'Banned')).toBe(options);
   });
 });

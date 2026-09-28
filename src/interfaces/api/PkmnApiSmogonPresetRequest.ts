@@ -43,6 +43,17 @@ export interface PkmnApiSmogonPresetRequest {
   bundleIds?: string[];
 
   /**
+   * Identifies the loaded bundle catalog, so bundle queries re-run when it arrives.
+   *
+   * * The catalog is loaded into Redux asynchronously (see `bakeBakedexBundles()`), possibly after the first bundle query.
+   *   Since that query would've come back empty & the args wouldn't have changed, its cached result would stick around.
+   * * Not used by the query itself; only part of the cache key.
+   *
+   * @since 1.4.3
+   */
+  catalogKey?: string;
+
+  /**
    * Specifies the `source` of the transformed presets.
    *
    * @default 'smogon'

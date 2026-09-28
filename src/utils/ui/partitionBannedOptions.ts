@@ -5,8 +5,8 @@ import { type FormatBanCategory, getFormatBans, isFormatBanned } from '@showdex/
 /**
  * Moves every option whose value is banned in the `format` into a trailing group, e.g., `'Banned'`.
  *
- * * Options are only *moved* (unless `config.hide` is `true`), so a banned value can still be picked (e.g., when calcing
- *   an opponent's set that's illegal in the format).
+ * * Options are only *moved*, never removed, so a banned value can still be picked (or stay selected) -- e.g., when
+ *   calcing an opponent's set that's illegal in the format.
  * * No-op for formats without bans.
  *
  * @since 1.4.3
@@ -15,12 +15,7 @@ export const partitionBannedOptions = <TValue extends string>(
   format: string,
   category: FormatBanCategory,
   options: DropdownOption<TValue>[],
-  config: {
-    /** Label of the trailing group holding the banned options. */
-    label: string;
-    /** If true, banned options are dropped instead of moved into the trailing group. */
-    hide?: boolean;
-  },
+  label: string,
 ): DropdownOption<TValue>[] => {
   if (!options?.length || !format || !getFormatBans(format)) {
     return options;
@@ -50,8 +45,8 @@ export const partitionBannedOptions = <TValue extends string>(
     return kept.length === group.options.length ? group : { ...group, options: kept };
   }).filter((group) => !Array.isArray(group?.options) || group.options.length);
 
-  if (banned.length && !config?.hide) {
-    output.push({ label: config?.label, options: banned });
+  if (banned.length) {
+    output.push({ label, options: banned });
   }
 
   return output;

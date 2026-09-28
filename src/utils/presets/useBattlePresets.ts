@@ -8,7 +8,7 @@ import {
   usePokemonRandomsPresetQuery,
   usePokemonRandomsStatsQuery,
 } from '@showdex/redux/services';
-import { useCalcdexSettings, useTeamdexPresets } from '@showdex/redux/store';
+import { useCalcdexSettings, useShowdexBundles, useTeamdexPresets } from '@showdex/redux/store';
 import { SoupStoreBundleIds } from '@showdex/consts/dex';
 import { logger } from '@showdex/utils/debug';
 import {
@@ -188,6 +188,10 @@ export const useBattlePresets = (
   } = useCalcdexSettings();
 
   const teamdexPresets = useTeamdexPresets();
+  const bundles = useShowdexBundles();
+
+  // changes once the bundle catalog is loaded into Redux, so the bundle query doesn't keep its earlier empty result
+  const catalogKey = React.useMemo(() => Object.keys(bundles?.buns?.presets || {}).sort().join(','), [bundles?.buns?.presets]);
 
   const maxAge: Duration = typeof maxPresetAge === 'number' && maxPresetAge > 0
     ? { days: maxPresetAge }
@@ -239,6 +243,7 @@ export const useBattlePresets = (
   } = usePokemonBundledPresetQuery({
     gen,
     bundleIds,
+    catalogKey,
   }, {
     skip: shouldSkipBundles,
   });

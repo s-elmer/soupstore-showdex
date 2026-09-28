@@ -200,8 +200,5 @@ export const buildAbilityOptions = (
     });
   }
 
-  return partitionBannedOptions(format, 'ability', options, {
-    label: translateHeader('Banned'),
-    hide: !(showAll || !legalLockedFormat(format) || !abilities?.length),
-  });
+  return partitionBannedOptions(format, 'ability', options, translateHeader('Banned'));
 };
