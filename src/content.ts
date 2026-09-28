@@ -40,6 +40,36 @@ const extensionId = mainUrl?.endsWith('main.js')
 
 const injectables: ContentInjectable<HTMLElement>[] = [
   {
+    id: 'showdex-preconnect-googleapis',
+    component: 'link',
+    into: 'head',
+    props: {
+      rel: 'preconnect',
+      href: 'https://fonts.googleapis.com',
+    },
+  } as ContentInjectable<HTMLLinkElement>,
+
+  {
+    id: 'showdex-stylesheet-work-sans',
+    component: 'link',
+    into: 'head',
+    props: {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap',
+    },
+  } as ContentInjectable<HTMLLinkElement>,
+
+  {
+    id: 'showdex-stylesheet-fira-code',
+    component: 'link',
+    into: 'head',
+    props: {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap',
+    },
+  } as ContentInjectable<HTMLLinkElement>,
+
+  {
     id: 'showdex-script-main',
     component: 'script',
     into: 'body',
@@ -50,28 +80,6 @@ const injectables: ContentInjectable<HTMLElement>[] = [
     },
   } as ContentInjectable<HTMLScriptElement>,
 ];
-
-// Work Sans & Fira Code are bundled with the extension instead of loaded from Google Fonts, since a host page's
-// Content Security Policy (e.g., play.soupstore.dev's `font-src 'self'`) can block the latter
-const fontFaces: [family: string, file: string, style: string, weight: string][] = [
-  ['Work Sans', 'work-sans-latin-wght-normal.woff2', 'normal', '100 900'],
-  ['Work Sans', 'work-sans-latin-wght-italic.woff2', 'italic', '100 900'],
-  ['Fira Code', 'fira-code-latin-wght-normal.woff2', 'normal', '300 700'],
-];
-
-const fontStyleId = 'showdex-stylesheet-fonts';
-
-if (!document.getElementById(fontStyleId)) {
-  const fontStyle = document.createElement('style');
-
-  fontStyle.id = fontStyleId;
-  fontStyle.textContent = fontFaces.map(([family, file, style, weight]) => (
-    `@font-face{font-family:'${family}';font-style:${style};font-weight:${weight};font-display:swap;`
-      + `src:url('${runtime.getURL(file)}') format('woff2');}`
-  )).join('\n');
-
-  document.head.appendChild(fontStyle);
-}
 
 l.info(
   'Starting Showdex for', env('build-target', 'probably chrome??'),

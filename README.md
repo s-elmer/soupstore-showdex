@@ -17,7 +17,8 @@ Reload play.soupstore.dev after installing.
 - Season 4 uses the Champions dex and calc mechanics but mainline stats (Level 100, EVs, IVs), and hides Tera.
 - Banned abilities, items and moves stay visible instead of being removed: their fields turn red, a "Banned:" notice lists them (including banned combinations like a Mega Stone + move), and they sit in a *Banned* group in the dropdowns so you can swap to another option. This needs the ban tables from the Soup Store client's build (`metagame*Bans`); against older builds nothing is marked.
 - Opposing Pokémon are auto-filled from bundled sets: Smogon Dex Champions Battle Stadium Singles first (converted to EVs and Level 100), then Gen 9 National Dex Singles. Banned abilities, items and moves are kept in these sets and marked as banned. No sets or usage stats are downloaded at runtime. To refresh them, see `scripts/fetch-smogon-dex-sets.mjs` and `scripts/bake-soupstore-sets.mjs`.
-- Remote Bakedex downloads are turned off, and Work Sans and Fira Code are bundled (SIL OFL, see `src/assets/fonts/`) instead of loaded from Google Fonts, since the client's Content Security Policy blocks external fonts.
+- Remote Bakedex downloads are turned off.
+- It loads two things from outside the page: the Work Sans and Fira Code fonts from Google Fonts, and (only for formats other than Soup Store's, in Firefox) preset data from `pkmn.github.io`. The client's Content Security Policy has to allow these (`soupstore-ps-client`, `soupstore/Caddyfile`), or the fonts fall back to the browser's defaults.
 
 ## Releasing
 
