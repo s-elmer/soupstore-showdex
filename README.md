@@ -7,7 +7,7 @@ A fork of [Showdex](https://github.com/doshidak/showdex) for the [Soup Store](ht
 Download the latest build from the [releases page](https://github.com/s-elmer/soupstore-showdex/releases).
 
 - **Chrome, Edge, Brave and other Chromium browsers:** unzip the `*.chrome.zip`, open `chrome://extensions`, turn on *Developer mode*, choose *Load unpacked* and select the unzipped folder.
-- **Firefox:** open the `*.xpi` file from the release in Firefox (drag it into the window) and confirm the install. It's signed by Mozilla, so it installs in regular Firefox. There is no automatic update: install the newer `.xpi` from the latest release to update.
+- **Firefox:** open the `*.xpi` file from the release in Firefox (drag it into the window) and confirm the install. It's signed by Mozilla, so it installs in regular Firefox, and Firefox then updates it by itself when a new release is published (Firefox checks for extension updates about once a day).
 
 Reload play.soupstore.dev after installing.
 
@@ -27,6 +27,13 @@ Reload play.soupstore.dev after installing.
 `.github/workflows/release.yml` then checks the tag matches the version, runs the tests, builds the Chrome and Firefox packages, signs the Firefox one with Mozilla (free "unlisted" signing, no review by a person, takes a few minutes) and attaches the Chrome `.zip` and the signed Firefox `.xpi` to a GitHub Release.
 
 Signing needs two repository secrets, from https://addons.mozilla.org/developers/addon/api/key/: `WEB_EXT_API_KEY` (the JWT issuer) and `WEB_EXT_API_SECRET` (the JWT secret). The workflow fails early with a message if they're missing.
+
+The workflow also publishes `updates.json` to the `firefox-updates` branch (created on the first release; only the workflow writes to it). The Firefox build's manifest points at it through `update_url`, which is how installed copies find new versions. It lists every released version with a link to its signed `.xpi` on the GitHub Release and its SHA-256 hash. Two things to know:
+
+- Only copies installed from a build that contains the `update_url` update themselves, so the first Firefox release players install is the one that has it.
+- The URL is `https://raw.githubusercontent.com/s-elmer/soupstore-showdex/firefox-updates/updates.json`. If the repo is renamed or moved, change `update_url` in `src/manifest.json` and release again, or existing installs stop updating.
+
+Chrome has no equivalent: the zip is loaded unpacked, so it is updated by hand.
 
 ---
 
