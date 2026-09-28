@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { extractMovesets, findDexSettings } from './smogonDex.mjs';
 import {
   SoupStoreBundles,
-  applyBansToSet,
   buildBundlePayload,
   convertChampionsSet,
   statPointsToEvs,
@@ -47,39 +46,21 @@ describe('convertChampionsSet()', () => {
   });
 });
 
-describe('applyBansToSet()', () => {
-  const bans = {
-    species: { dialga: 1 },
-    move: { assist: 1, hiddenpower: 1 },
-    item: { quickclaw: 1 },
-    ability: { moody: 1 },
-    complex: [['item:alakazite', 'move:nastyplot']],
-  };
-
-  const set = { ability: 'Magic Guard', item: 'Life Orb', moves: ['Psychic', ['Nasty Plot', 'Assist']] };
-
-  it('drops banned species', () => {
-    expect(applyBansToSet('Dialga', set, bans)).toBeNull();
-  });
-
-  it('removes banned alternatives & drops sets left with an empty field', () => {
-    expect(applyBansToSet('Alakazam', set, bans).moves).toEqual(['Psychic', ['Nasty Plot']]);
-    expect(applyBansToSet('Alakazam', { ...set, item: ['Quick Claw'] }, bans)).toBeNull();
-    expect(applyBansToSet('Alakazam', { ...set, moves: ['Psychic', 'Assist'] }, bans)).toBeNull();
-    expect(applyBansToSet('Alakazam', { ...set, ability: 'Moody' }, bans)).toBeNull();
-  });
-
-  it('drops sets whose primary combination is a complex ban', () => {
-    expect(applyBansToSet('Alakazam', { ...set, item: 'Alakazite' }, bans)).toBeNull();
-    expect(applyBansToSet('Alakazam', { ...set, item: ['Life Orb', 'Alakazite'] }, bans)).not.toBeNull();
-  });
-});
-
 describe('buildBundlePayload()', () => {
   it('skips excluded species (covered by a higher priority source)', () => {
     const sets = { Garchomp: { Set: { moves: ['Earthquake'] } }, Corviknight: { Set: { moves: ['Roost'] } } };
 
     expect(Object.keys(buildBundlePayload(sets, { exclude: new Set(['garchomp']) }))).toEqual(['Corviknight']);
+  });
+
+  it('skips sets of banned species, but keeps banned abilities, items & moves so they can be marked & swapped', () => {
+    const banned = { Set: { ability: 'Moody', item: 'Quick Claw', moves: ['Assist', ['Hidden Power', 'Psychic']] } };
+    const payload = buildBundlePayload(
+      { Dialga: { Set: { moves: ['Roar of Time'] } }, Alakazam: banned },
+      { bans: { species: { dialga: 1 }, move: { assist: 1 }, item: { quickclaw: 1 }, ability: { moody: 1 } } },
+    );
+
+    expect(payload).toEqual({ Alakazam: banned });
   });
 });
 

@@ -18,8 +18,6 @@ export const toId = (s) => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, 
 /** Champions stat points -> EVs. First point is worth 4 EVs & each one after 8, so stats match exactly at Level 50. */
 export const statPointsToEvs = (points) => (points > 0 ? Math.min(points * 8 - 4, 252) : 0);
 
-const asArray = (v) => (Array.isArray(v) ? v : [v]);
-
 const convertSpread = (spread) => {
   const evs = Object.fromEntries(STAT_IDS.map((s) => [s, statPointsToEvs(spread?.[s] || 0)]));
   let total = STAT_IDS.reduce((sum, s) => sum + evs[s], 0);
@@ -51,105 +49,23 @@ export const convertChampionsSet = (set) => {
 };
 
 /**
- * Filters the options of a set field by a ban list (`ids`), keeping the original shape (single value or array).
- * Returns `undefined` if every option is banned.
- */
-const filterBanned = (value, banned) => {
-  if (value === undefined || value === null) {
-    return value;
-  }
-
-  const kept = asArray(value).filter((v) => !banned?.[toId(v)]);
-
-  if (!kept.length) {
-    return undefined;
-  }
-
-  return Array.isArray(value) ? kept : kept[0];
-};
-
-const firstOf = (v) => asArray(v)[0];
-
-/**
- * Applies the format's bans to a set, returning `null` if the set can't be made legal.
+ * Builds a bundle payload (`{ [species]: { [setName]: set } }`) from a source's sets, applying conversion.
  *
- * * Banned alternatives (items, abilities, moves) are removed. A field whose every option is banned drops the set.
- * * The set is dropped if its primary (first-choice) combination hits a complex ban.
- */
-export const applyBansToSet = (speciesForme, set, bans) => {
-  const { species = {}, move = {}, item = {}, ability = {}, complex = [] } = bans || {};
-
-  if (species[toId(speciesForme)]) {
-    return null;
-  }
-
-  const output = { ...set };
-
-  if (set.item !== undefined) {
-    output.item = filterBanned(set.item, item);
-
-    if (output.item === undefined) {
-      return null;
-    }
-  }
-
-  if (set.ability !== undefined) {
-    output.ability = filterBanned(set.ability, ability);
-
-    if (output.ability === undefined) {
-      return null;
-    }
-  }
-
-  if (set.moves) {
-    const moves = [];
-
-    for (const slot of set.moves) {
-      const filtered = filterBanned(slot, move);
-
-      if (filtered === undefined) {
-        return null;
-      }
-
-      moves.push(filtered);
-    }
-
-    output.moves = moves;
-  }
-
-  const present = new Set([
-    `species:${toId(speciesForme)}`,
-    ...(output.ability ? [`ability:${toId(firstOf(output.ability))}`] : []),
-    ...(output.item ? [`item:${toId(firstOf(output.item))}`] : []),
-    ...(output.moves || []).map((m) => `move:${toId(firstOf(m))}`),
-  ]);
-
-  if (complex.some((combo) => combo.length > 1 && combo.every((id) => present.has(id)))) {
-    return null;
-  }
-
-  return output;
-};
-
-/**
- * Builds a bundle payload (`{ [species]: { [setName]: set } }`) from a source's sets, applying conversion & bans.
- *
+ * * Sets of banned species are skipped, since those Pokemon can't appear in the format.
+ * * Banned abilities, items, moves & combinations are deliberately *kept*: the extension marks them as banned, so users
+ *   can see them and swap to another likely option.
  * * Species already in `exclude` (e.g., ones covered by a higher priority source) are skipped when `exclude` is provided.
  */
 export const buildBundlePayload = (sets, { convert = (s) => s, bans, exclude } = {}) => {
   const payload = {};
 
   for (const [speciesForme, named] of Object.entries(sets || {})) {
-    if (exclude?.has(toId(speciesForme))) {
+    if (exclude?.has(toId(speciesForme)) || bans?.species?.[toId(speciesForme)]) {
       continue;
     }
 
     for (const [name, set] of Object.entries(named || {})) {
-      const legal = applyBansToSet(speciesForme, convert(set), bans);
-
-      if (legal) {
-        (payload[speciesForme] ||= {})[name] = legal;
-      }
+      (payload[speciesForme] ||= {})[name] = convert(set);
     }
   }
 

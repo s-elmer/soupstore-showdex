@@ -33,6 +33,7 @@ import {
   getDexForFormat,
   getMegaFormeForItem,
   hasMegaForme,
+  isFormatBanned,
   isTeraBanned,
 } from '@showdex/utils/dex';
 import {
@@ -837,6 +838,7 @@ export const PokeMoves = ({
                 options={moveOptions}
                 noOptionsMessage={t('poke.moves.slot.empty') as string}
                 filterOption={moveOptionsFilter}
+                banned={isFormatBanned(format, 'move', moveName)}
                 disabled={!pokemon?.speciesForme}
               />
             </TableGridItem>

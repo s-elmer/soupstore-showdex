@@ -50,7 +50,9 @@ import {
   writeClipboardText,
 } from '@showdex/utils/core';
 import { logger } from '@showdex/utils/debug';
-import { findFormatViolations, hasNickname, isTeraBanned, legalLockedFormat, toggleableAbility } from '@showdex/utils/dex';
+import {
+ findFormatViolations, hasNickname, isFormatBanned, isTeraBanned, legalLockedFormat, toggleableAbility,
+} from '@showdex/utils/dex';
 import { useRandomUuid } from '@showdex/utils/hooks';
 import { openSmogonDex } from '@showdex/utils/host';
 import { capitalize } from '@showdex/utils/humanize';
@@ -1121,6 +1123,7 @@ export const PokeInfo = ({
               filterOption={abilityOptionsFilter}
               clearable={false}
               highlight={pokemon?.abilityToggled}
+              banned={isFormatBanned(format, 'ability', abilityName)}
               disabled={legacy || !pokemon?.speciesForme}
             />
           </div>
@@ -1292,6 +1295,7 @@ export const PokeInfo = ({
               options={itemOptions}
               noOptionsMessage={t('poke.info.item.empty', 'No Items') as string}
               filterOption={itemOptionsFilter}
+              banned={isFormatBanned(format, 'item', itemName)}
               disabled={gen === 1 || !pokemon?.speciesForme}
             />
           </div>
