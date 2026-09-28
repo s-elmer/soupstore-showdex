@@ -7,7 +7,7 @@ A fork of [Showdex](https://github.com/doshidak/showdex) for the [Soup Store](ht
 Download the latest build from the [releases page](https://github.com/s-elmer/soupstore-showdex/releases).
 
 - **Chrome, Edge, Brave and other Chromium browsers:** unzip the `*.chrome.zip`, open `chrome://extensions`, turn on *Developer mode*, choose *Load unpacked* and select the unzipped folder.
-- **Firefox:** open the `*.firefox.xpi` file in Firefox and confirm the install. Firefox only installs signed extensions, so this needs an xpi signed through Mozilla's unlisted add-on signing (until then, use Firefox Developer Edition/Nightly with `xpinstall.signatures.required` off, or `about:debugging` > *Load Temporary Add-on*).
+- **Firefox:** open the `*.xpi` file from the release in Firefox (drag it into the window) and confirm the install. It's signed by Mozilla, so it installs in regular Firefox. There is no automatic update: install the newer `.xpi` from the latest release to update.
 
 Reload play.soupstore.dev after installing.
 
@@ -21,7 +21,12 @@ Reload play.soupstore.dev after installing.
 
 ## Releasing
 
-Push a tag like `v1.4.3`. `.github/workflows/release.yml` runs the tests, builds the Chrome and Firefox packages and attaches them to a GitHub Release.
+1. Bump `version` in `package.json` (Mozilla refuses to sign a version it has already signed) and commit it.
+2. Push a tag that matches it, e.g. `v1.4.3` for version `1.4.3`.
+
+`.github/workflows/release.yml` then checks the tag matches the version, runs the tests, builds the Chrome and Firefox packages, signs the Firefox one with Mozilla (free "unlisted" signing, no review by a person, takes a few minutes) and attaches the Chrome `.zip` and the signed Firefox `.xpi` to a GitHub Release.
+
+Signing needs two repository secrets, from https://addons.mozilla.org/developers/addon/api/key/: `WEB_EXT_API_KEY` (the JWT issuer) and `WEB_EXT_API_SECRET` (the JWT secret). The workflow fails early with a message if they're missing.
 
 ---
 

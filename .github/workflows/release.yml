@@ -13,6 +13,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Mozilla refuses to sign a version it has already signed, so every release needs a new version in package.json
+      - name: Check the tag matches package.json
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} doesn't match the version in package.json (v${version}). Bump the version, commit, and tag again."
+            exit 1
+          fi
+
+      - name: Check the Firefox signing secrets are set
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        run: |
+          if [ -z "${WEB_EXT_API_KEY}" ] || [ -z "${WEB_EXT_API_SECRET}" ]; then
+            echo "::error::Add the WEB_EXT_API_KEY (JWT issuer) and WEB_EXT_API_SECRET (JWT secret) repository secrets from addons.mozilla.org/developers/addon/api/key/"
+            exit 1
+          fi
+
       - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
@@ -30,10 +49,26 @@ jobs:
 
       - run: pnpm build:firefox:fast
 
+      # Firefox only installs extensions signed by Mozilla. "Unlisted" signing is free, doesn't publish anything on
+      # addons.mozilla.org & takes a few minutes. Writes the signed .xpi to dist/signed/.
+      - name: Sign the Firefox build with Mozilla
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        run: |
+          npx --yes web-ext@8 sign \
+            --source-dir dist/firefox \
+            --channel unlisted \
+            --artifacts-dir dist/signed \
+            --approval-timeout 1200000
+          ls -l dist/signed
+
+      # only the signed .xpi is attached; the unsigned dist/*.firefox.xpi can't be installed in regular Firefox
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+          fail_on_unmatched_files: true
           files: |
             dist/*.chrome.zip
-            dist/*.firefox.xpi
+            dist/signed/*.xpi
