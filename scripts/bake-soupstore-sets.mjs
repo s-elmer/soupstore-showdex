@@ -8,6 +8,7 @@
  * Sources, in priority order (a species covered by an earlier one is skipped in later ones):
  *   1. Smogon Dex, Champions Battle Stadium Singles: converted from Stat Points/Level 50 to EVs/Level 100
  *   2. Smogon Dex, Gen 9 National Dex Singles: already EVs/Level 100
+ * `--server` validates every set with the server's team validator (needs its `dist/`, i.e., `node build`) & drops illegal ones.
  * `bans.json` is `{ species, move, item, ability, complex }` (ID -> 1 records, and `complex` as `['item:x', 'move:y']` lists),
  * the same data as `BattleTeambuilderTable.natdexchampions.metagame*Bans.soupstoreseason4` from the Soup Store client.
  *
@@ -16,6 +17,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+import { legalizePayload, loadServerValidator } from './lib/serverValidate.mjs';
 import { SoupStoreBundles, buildBundlePayload, convertChampionsSet, toId } from './lib/soupstoreSets.mjs';
 
 const bundlesDir = fileURLToPath(new URL('../src/assets/bundles/', import.meta.url));
@@ -26,22 +28,31 @@ const { values } = parseArgs({
     bss: { type: 'string' },
     natdex: { type: 'string' },
     bans: { type: 'string' },
+    server: { type: 'string' },
   },
 });
 
 if (!values.bss && !values.natdex) {
-  console.error('usage: bake-soupstore-sets.mjs --bss <file> --natdex <file> [--bans <file>]');
+  console.error('usage: bake-soupstore-sets.mjs --bss <file> --natdex <file> [--bans <file>] [--server <soupstore-ps-server>]');
   process.exit(1);
 }
 
+const validator = values.server ? loadServerValidator(values.server, 'gen9soupstoreseason4') : null;
 const bans = values.bans ? readJson(values.bans) : {};
 const buns = readJson(`${bundlesDir}buns.json`);
 const now = new Date().toISOString();
 const covered = new Set();
 
 const bake = (key, sets, convert) => {
-  const payload = buildBundlePayload(sets, { convert, bans, exclude: covered });
+  let payload = buildBundlePayload(sets, { convert, bans, exclude: covered });
   const bundle = SoupStoreBundles[key];
+
+  if (validator) {
+    const legalized = legalizePayload(validator, payload);
+
+    payload = legalized.payload;
+    console.log(`${bundle.name}: dropped ${legalized.dropped} sets the server validator rejects`);
+  }
 
   Object.keys(payload).forEach((species) => covered.add(toId(species)));
 
@@ -74,4 +85,4 @@ if (values.natdex) {
   bake('natdex', readJson(values.natdex));
 }
 
-writeFileSync(`${bundlesDir}buns.json`, `${JSON.stringify(buns)}\n`);
+writeFileSync(`${bundlesDir}buns.json`, `${JSON.stringify(buns, null, 2)}\n`);

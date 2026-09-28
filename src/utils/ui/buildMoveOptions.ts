@@ -13,13 +13,13 @@ import {
   legalLockedFormat,
 } from '@showdex/utils/dex';
 import { percentage } from '@showdex/utils/humanize';
-import { partitionBannedOptions } from './partitionBannedOptions';
 import {
   type CalcdexPokemonUsageAltSorter,
   detectUsageAlt,
   flattenAlt,
   flattenAlts,
 } from '@showdex/utils/presets';
+import { partitionBannedOptions } from './partitionBannedOptions';
 
 export type CalcdexPokemonMoveOption = DropdownOption<MoveName>;
 

@@ -2,7 +2,7 @@
  * Best-effort helpers for reading strategy sets out of Smogon Dex pages (e.g., smogon.com/dex/champions/pokemon/garchomp/).
  *
  * Each page embeds `dexSettings = { ..., injectRpcs: [...] }`, whose data includes `strategies` with `movesets`, e.g.:
- * `{ format: 'BSS', movesets: [{ name, pokemon, abilities[], items[], moveslots[[{ move }]], evconfigs[{ hp, atk, ... }],
+ * `{ format: 'Battle Stadium Singles', movesets: [{ name, pokemon, abilities[], items[], moveslots[[{ move }]], evconfigs[{ hp, atk, ... }],
  *   ivconfigs[], natures[], teratypes[] }] }`.
  *
  * ⚠️ That shape is undocumented & is assumed here. `extractMovesets()` searches the parsed JSON for `strategies`

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { detectSoupStoreFormat, isTeraBanned, usesChampionsData, usesStatPoints } from './formatFlags';
+import {
+ detectSoupStoreFormat, isTeraBanned, usesChampionsData, usesStatPoints,
+} from './formatFlags';
 
 const SOUP = 'gen9soupstoreseason4';
 

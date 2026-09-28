@@ -1,5 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { findComplexBans, findFormatViolations, getFormatBans, isFormatBanned } from './getFormatBans';
+import {
+ afterEach, beforeEach, describe, expect, it, vi,
+} from 'vitest';
+import {
+ findComplexBans, findFormatViolations, getFormatBans, isFormatBanned,
+} from './getFormatBans';
 import { getDexForFormat } from './getDexForFormat';
 import { guessTableFormatKey } from './guessTableFormatKey';
 
