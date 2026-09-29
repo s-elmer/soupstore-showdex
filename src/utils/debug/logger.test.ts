@@ -3,7 +3,9 @@ import {
 } from 'vitest';
 
 const capture = vi.fn();
-vi.mock('./teledex', () => ({ teledex: { capture: (...a: unknown[]) => capture(...a) } }));
+vi.mock('./teledex', () => ({
+  teledex: { shouldCapture: () => true, capture: (...a: unknown[]) => capture(...a) },
+}));
 
 const { logger } = await import('./logger');
 
