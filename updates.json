@@ -6,6 +6,11 @@
           "version": "1.4.3",
           "update_link": "https://github.com/s-elmer/soupstore-showdex/releases/download/v1.4.3/soupstore-showdex-1.4.3.xpi",
           "update_hash": "sha256:0c8dc6532d5ea493a2ba6c769e1d40e86e90e246bb337202d3174f0c4b6d54b5"
+        },
+        {
+          "version": "1.4.4",
+          "update_link": "https://github.com/s-elmer/soupstore-showdex/releases/download/v1.4.4/soupstore-showdex-1.4.4.xpi",
+          "update_hash": "sha256:2dc5544e5caf59db04e802e5262da6191ec538a8f3d80f27315215707a652127"
         }
       ]
     }
