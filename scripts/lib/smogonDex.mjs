@@ -64,8 +64,11 @@ const collectStrategies = (node, out = []) => {
   return out;
 };
 
-/** Extracts `{ [setName]: set }` (pkmn Sets shape) from a page, keeping only the strategies of the given Smogon format. */
-export const extractMovesets = (html, formatName) => {
+/**
+ * Extracts every strategy format's movesets from a page, as `{ [format]: { [species]: { [setName]: set } } }`
+ * (the pkmn Sets shape, per format).
+ */
+export const extractMovesetsByFormat = (html) => {
   const settings = findDexSettings(html);
   const output = {};
 
@@ -73,23 +76,19 @@ export const extractMovesets = (html, formatName) => {
     return output;
   }
 
-  const wanted = String(formatName).toLowerCase();
+  const single = (list) => (list?.length === 1 ? list[0] : list);
 
   for (const strategy of collectStrategies(settings)) {
-    if (String(strategy.format || '').toLowerCase() !== wanted) {
-      continue;
-    }
+    const format = String(strategy.format || '');
 
     for (const m of strategy.movesets) {
       const species = m.pokemon;
 
-      if (!species || !m.name || !m.moveslots?.length) {
+      if (!format || !species || !m.name || !m.moveslots?.length) {
         continue;
       }
 
-      const single = (list) => (list?.length === 1 ? list[0] : list);
-
-      (output[species] ||= {})[m.name] = {
+      ((output[format] ||= {})[species] ||= {})[m.name] = {
         ...(m.abilities?.length && { ability: single(m.abilities) }),
         ...(m.items?.length && { item: single(m.items) }),
         ...(m.natures?.length && { nature: single(m.natures) }),
@@ -106,3 +105,10 @@ export const extractMovesets = (html, formatName) => {
 
   return output;
 };
+
+/** Extracts `{ [species]: { [setName]: set } }` from a page, keeping only the strategies of the given Smogon format. */
+export const extractMovesets = (html, formatName) => (
+  extractMovesetsByFormat(html)[
+    Object.keys(extractMovesetsByFormat(html)).find((f) => f.toLowerCase() === String(formatName).toLowerCase())
+  ] || {}
+);

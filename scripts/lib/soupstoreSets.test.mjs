@@ -1,8 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { extractMovesets, findDexSettings } from './smogonDex.mjs';
+import { extractMovesets, extractMovesetsByFormat, findDexSettings } from './smogonDex.mjs';
 import {
+  SetSourcePriority,
   SoupStoreBundles,
+  buildAllBundles,
   buildBundlePayload,
   convertChampionsSet,
   statPointsToEvs,
@@ -64,12 +66,81 @@ describe('buildBundlePayload()', () => {
   });
 });
 
+describe('buildAllBundles()', () => {
+  const set = (move) => ({ moves: [move] });
+  const downloads = {
+    champions: {
+      'Battle Stadium Singles': { Garchomp: { Bss: set('Earthquake') } },
+    },
+    sv: {
+      'National Dex': { Garchomp: { NdOu: set('Outrage') }, Clefable: { NdOu: set('Moonblast') } },
+      'National Dex Ubers': { Clefable: { NdUbers: set('Calm Mind') }, Mewtwo: { NdUbers: set('Psystrike') } },
+      'National Dex UU': { Mewtwo: { NdUu: set('Recover') }, Hydreigon: { NdUu: set('Draco Meteor') } },
+      'National Dex RU': { Hydreigon: { NdRu: set('Dark Pulse') }, Absol: { NdRu: set('Knock Off') } },
+      OU: { Absol: { Ou: set('Swords Dance') }, Toxapex: { Ou: set('Scald') } },
+      Uber: { Toxapex: { Ubers: set('Recover') }, Kyogre: { Ubers: set('Origin Pulse') } },
+      ZU: { Kyogre: { Zu: set('Surf') }, Wobbuffet: { Zu: set('Counter') } },
+    },
+  };
+
+  const names = (payload) => Object.fromEntries(Object.entries(payload).map(([sp, sets]) => [sp, Object.keys(sets)]));
+
+  it('lists the sources in the requested order', () => {
+    expect(SetSourcePriority.map((s) => s.format)).toEqual([
+      'Battle Stadium Singles',
+      'National Dex', 'National Dex Ubers', 'National Dex UU', 'National Dex RU',
+      'OU', 'Uber', 'UU', 'RU', 'NU', 'PU', 'ZU',
+    ]);
+    expect(SetSourcePriority[0]).toMatchObject({ gen: 'champions', bundle: 'bss' });
+    SetSourcePriority.slice(1).forEach((s) => expect(s).toMatchObject({ gen: 'sv', bundle: 'natdex' }));
+  });
+
+  it('gives each Pokemon the sets of the first source that has any, and nothing from later ones', () => {
+    const { payloads } = buildAllBundles(downloads);
+
+    expect(names(payloads.bss)).toEqual({ Garchomp: ['Bss'] }); // BSS beats National Dex OU
+    expect(names(payloads.natdex)).toEqual({
+      Clefable: ['NdOu'], // National Dex OU beats National Dex Ubers
+      Mewtwo: ['NdUbers'], // Ubers beats UU
+      Hydreigon: ['NdUu'], // UU beats RU
+      Absol: ['NdRu'], // National Dex RU beats Gen 9 OU
+      Toxapex: ['Ou'], // Gen 9 OU beats Gen 9 Ubers
+      Kyogre: ['Ubers'], // Gen 9 Ubers beats ZU
+      Wobbuffet: ['Zu'], // only found in the lowest tier
+    });
+  });
+
+  it('converts only the Champions sets, and skips banned species in every source', () => {
+    const { payloads } = buildAllBundles({
+      champions: { 'Battle Stadium Singles': { Lucario: { A: { level: 50, evs: { atk: 32 }, moves: ['Close Combat'] } } } },
+      sv: { 'National Dex': { Mewtwo: { B: { evs: { atk: 252 }, moves: ['Psystrike'] } } }, OU: { Garchomp: { C: set('Earthquake') } } },
+    }, { bans: { species: { mewtwo: 1 } } });
+
+    expect(payloads.bss.Lucario.A).toMatchObject({ level: 100, evs: { atk: 252 } });
+    expect(payloads.natdex.Mewtwo).toBeUndefined();
+    expect(payloads.natdex.Garchomp.C).toEqual(set('Earthquake'));
+  });
+
+  it('reports formats that were not in the download, e.g., a wrong name', () => {
+    const { report } = buildAllBundles(downloads);
+
+    expect(report.find((r) => r.format === 'NU')).toMatchObject({ missing: true, species: [] });
+    expect(report.find((r) => r.format === 'ZU')).toMatchObject({ missing: false, species: ['Wobbuffet'] });
+  });
+
+  it('matches format names regardless of case', () => {
+    const { payloads } = buildAllBundles({ sv: { 'national dex ubers': { Mewtwo: { A: set('Psystrike') } } } });
+
+    expect(Object.keys(payloads.natdex)).toEqual(['Mewtwo']);
+  });
+});
+
 describe('Smogon Dex parsing', () => {
   const page = `<script>dexSettings = ${JSON.stringify({
     injectRpcs: [null, ['dump-pokemon', {
       strategies: [
         {
-          format: 'BSS',
+          format: 'Battle Stadium Singles',
           movesets: [{
             name: 'Choice Scarf',
             pokemon: 'Garchomp',
@@ -90,8 +161,15 @@ describe('Smogon Dex parsing', () => {
     expect(findDexSettings('<html></html>')).toBeNull();
   });
 
+  it('extracts every format at once', () => {
+    const byFormat = extractMovesetsByFormat(page);
+
+    expect(Object.keys(byFormat)).toEqual(['Battle Stadium Singles', 'OU']);
+    expect(byFormat.OU.Garchomp.Other.moves).toEqual(['Stealth Rock']);
+  });
+
   it('extracts the movesets of the requested format only', () => {
-    expect(extractMovesets(page, 'BSS')).toEqual({
+    expect(extractMovesets(page, 'battle stadium singles')).toEqual({
       Garchomp: {
         'Choice Scarf': {
           ability: 'Rough Skin',

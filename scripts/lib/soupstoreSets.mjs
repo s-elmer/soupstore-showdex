@@ -82,8 +82,65 @@ export const SoupStoreBundles = {
   },
   natdex: {
     id: '5a7b3c10-50a1-4e1e-9c1a-0b55d0e0a002',
-    name: 'Soup Store Season 4 (Smogon Gen 9 National Dex)',
-    label: 'S4 NatDex',
-    desc: 'Smogon Dex Gen 9 National Dex Singles sets for Soup Store Season 4.',
+    name: 'Soup Store Season 4 (Smogon National Dex & Gen 9 tiers)',
+    label: 'S4 NatDex & tiers',
+    desc: 'Smogon Dex Gen 9 National Dex sets (OU, then Ubers, UU and RU), then Gen 9 tier sets (OU, Uber, UU, RU, NU, PU, ZU), for Pokemon without earlier sets.',
   },
+};
+
+/**
+ * Where a Pokemon's auto-filled sets come from, most preferred first.
+ *
+ * * A Pokemon gets the sets of the *first* source below that has any for it & none from the later ones.
+ *   e.g., a Pokemon with no Champions BSS or National Dex OU sets gets its National Dex Ubers sets, if it has any.
+ * * `gen` is the Smogon Dex gen the sets were downloaded from (`--champions` / `--sv` of `bake-soupstore-sets.mjs`),
+ *   `format` is the strategy format's name on the Dex, `bundle` is the key in `SoupStoreBundles` the sets are baked into,
+ *   & `convert` converts the sets (Champions sets use Stat Points & Level 50).
+ */
+export const SetSourcePriority = [
+  { gen: 'champions', format: 'Battle Stadium Singles', bundle: 'bss', convert: 'champions' },
+  { gen: 'sv', format: 'National Dex', bundle: 'natdex' },
+  { gen: 'sv', format: 'National Dex Ubers', bundle: 'natdex' },
+  { gen: 'sv', format: 'National Dex UU', bundle: 'natdex' },
+  { gen: 'sv', format: 'National Dex RU', bundle: 'natdex' },
+  { gen: 'sv', format: 'OU', bundle: 'natdex' },
+  { gen: 'sv', format: 'Uber', bundle: 'natdex' },
+  { gen: 'sv', format: 'UU', bundle: 'natdex' },
+  { gen: 'sv', format: 'RU', bundle: 'natdex' },
+  { gen: 'sv', format: 'NU', bundle: 'natdex' },
+  { gen: 'sv', format: 'PU', bundle: 'natdex' },
+  { gen: 'sv', format: 'ZU', bundle: 'natdex' },
+];
+
+const findFormat = (byFormat, name) => (
+  byFormat?.[Object.keys(byFormat || {}).find((f) => f.toLowerCase() === name.toLowerCase())]
+);
+
+/**
+ * Builds every bundle's payload from the downloaded sets, following `SetSourcePriority`.
+ *
+ * * `downloads` is `{ champions, sv }`, each the output of `fetch-smogon-dex-sets.mjs` (`{ [format]: { [species]: sets } }`).
+ * * Returns `{ payloads: { [bundle key]: payload }, report: [{ format, species: [...], missing }] }`, where `missing`
+ *   is true if the format wasn't in the download at all (likely a wrong name, or nothing was downloaded for that gen).
+ */
+export const buildAllBundles = (downloads, { bans, order = SetSourcePriority } = {}) => {
+  const payloads = {};
+  const covered = new Set();
+  const report = [];
+
+  for (const { gen, format, bundle, convert } of order) {
+    const sets = findFormat(downloads?.[gen], format);
+    const payload = buildBundlePayload(sets, {
+      convert: convert === 'champions' ? convertChampionsSet : undefined,
+      bans,
+      exclude: covered,
+    });
+    const species = Object.keys(payload);
+
+    species.forEach((name) => covered.add(toId(name)));
+    Object.assign((payloads[bundle] ||= {}), payload);
+    report.push({ format, species, missing: !sets });
+  }
+
+  return { payloads, report };
 };

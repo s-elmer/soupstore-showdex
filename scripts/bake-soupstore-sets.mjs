@@ -3,48 +3,54 @@
  * Bakes the Soup Store Season 4 preset bundles from Smogon Dex sets (see `fetch-smogon-dex-sets.mjs`).
  *
  * Usage:
- *   node scripts/bake-soupstore-sets.mjs --bss champions-bss.json --natdex natdex.json --bans bans.json
+ *   node scripts/bake-soupstore-sets.mjs --champions champions.json --sv sv.json --bans bans.json
  *
- * Sources, in priority order (a species covered by an earlier one is skipped in later ones):
- *   1. Smogon Dex, Champions Battle Stadium Singles: converted from Stat Points/Level 50 to EVs/Level 100
- *   2. Smogon Dex, Gen 9 National Dex Singles: already EVs/Level 100
+ * Sources, most preferred first (see `SetSourcePriority` in `lib/soupstoreSets.mjs`). A Pokemon gets the sets of the
+ * first source that has any for it, & nothing from the later ones:
+ *   1. Champions Battle Stadium Singles (converted from Stat Points/Level 50 to EVs/Level 100)
+ *   2. Gen 9 National Dex, then National Dex Ubers, UU & RU (already EVs/Level 100)
+ *   3. Gen 9 tiers: OU, Ubers, UU, RU, NU, PU & ZU
+ * `--champions` & `--sv` are the outputs of `fetch-smogon-dex-sets.mjs` for the `champions` & `sv` Dex gens.
+ *
  * `bans.json` (optional) is `{ species, ... }` with banned species IDs as `{ id: 1 }`, i.e., `metagameBans.soupstoreseason4` from
  * `BattleTeambuilderTable.natdexchampions` in the Soup Store client. Sets of banned species are skipped. Banned abilities, items,
  * moves & combinations are kept in the sets on purpose: the extension marks them as banned so they can be swapped.
  *
- * Writes `src/assets/bundles/<id>.json` & registers both in `buns.json` under `format: 'soupstoreseason4'`.
+ * Writes `src/assets/bundles/<id>.json` & registers them in `buns.json` under `format: 'soupstoreseason4'`.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { SoupStoreBundles, buildBundlePayload, convertChampionsSet, toId } from './lib/soupstoreSets.mjs';
+import { SoupStoreBundles, buildAllBundles } from './lib/soupstoreSets.mjs';
 
 const bundlesDir = fileURLToPath(new URL('../src/assets/bundles/', import.meta.url));
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 
 const { values } = parseArgs({
   options: {
-    bss: { type: 'string' },
-    natdex: { type: 'string' },
+    champions: { type: 'string' },
+    sv: { type: 'string' },
     bans: { type: 'string' },
   },
 });
 
-if (!values.bss && !values.natdex) {
-  console.error('usage: bake-soupstore-sets.mjs --bss <file> --natdex <file> [--bans <file>]');
+if (!values.champions || !values.sv) {
+  console.error('usage: bake-soupstore-sets.mjs --champions <file> --sv <file> [--bans <file>]');
   process.exit(1);
 }
 
 const bans = values.bans ? readJson(values.bans) : {};
 const buns = readJson(`${bundlesDir}buns.json`);
 const now = new Date().toISOString();
-const covered = new Set();
 
-const bake = (key, sets, convert) => {
-  const payload = buildBundlePayload(sets, { convert, bans, exclude: covered });
+const { payloads, report } = buildAllBundles({ champions: readJson(values.champions), sv: readJson(values.sv) }, { bans });
+
+for (const { format, species, missing } of report) {
+  console.log(`${format}: ${missing ? 'NOT FOUND in the download (check the format name)' : `${species.length} new species`}`);
+}
+
+for (const [key, payload] of Object.entries(payloads)) {
   const bundle = SoupStoreBundles[key];
-
-  Object.keys(payload).forEach((species) => covered.add(toId(species)));
 
   writeFileSync(`${bundlesDir}${bundle.id}.json`, `${JSON.stringify({ ok: true, status: 'list', ntt: 'presets', payload })}\n`);
 
@@ -64,15 +70,6 @@ const bake = (key, sets, convert) => {
   };
 
   console.log(`${bundle.name}: ${Object.keys(payload).length} species`);
-};
-
-// priority order: BSS first, so its species are excluded from the National Dex bundle
-if (values.bss) {
-  bake('bss', readJson(values.bss), convertChampionsSet);
-}
-
-if (values.natdex) {
-  bake('natdex', readJson(values.natdex));
 }
 
 writeFileSync(`${bundlesDir}buns.json`, `${JSON.stringify(buns, null, 2)}\n`);
