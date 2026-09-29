@@ -5,6 +5,7 @@ import {
   SetSourcePriority,
   SoupStoreBundles,
   buildAllBundles,
+  dropNoItem,
   buildBundlePayload,
   convertChampionsSet,
   statPointsToEvs,
@@ -90,9 +91,14 @@ describe('buildAllBundles()', () => {
       'Battle Stadium Singles',
       'National Dex', 'National Dex Ubers', 'National Dex UU', 'National Dex RU',
       'OU', 'Uber', 'UU', 'RU', 'NU', 'PU', 'ZU',
+      'National Dex', 'National Dex RU', 'OU', 'Uber', 'UU', 'RU', 'NU', 'PU', 'ZU',
+    ]);
+    expect(SetSourcePriority.map((s) => s.gen)).toEqual([
+      'champions', ...Array(11).fill('sv'), ...Array(9).fill('ss'),
     ]);
     expect(SetSourcePriority[0]).toMatchObject({ gen: 'champions', bundle: 'bss' });
-    SetSourcePriority.slice(1).forEach((s) => expect(s).toMatchObject({ gen: 'sv', bundle: 'natdex' }));
+    SetSourcePriority.slice(1).forEach((s) => expect(s.bundle).toBe('natdex'));
+    SetSourcePriority.filter((s) => s.gen === 'ss').forEach((s) => expect(s.namePrefix).toBe('[Gen 8] '));
   });
 
   it('gives each Pokemon the sets of the first source that has any, and nothing from later ones', () => {
@@ -124,14 +130,45 @@ describe('buildAllBundles()', () => {
   it('reports formats that were not in the download, e.g., a wrong name', () => {
     const { report } = buildAllBundles(downloads);
 
-    expect(report.find((r) => r.format === 'NU')).toMatchObject({ missing: true, species: [] });
-    expect(report.find((r) => r.format === 'ZU')).toMatchObject({ missing: false, species: ['Wobbuffet'] });
+    expect(report.find((r) => r.gen === 'sv' && r.format === 'NU')).toMatchObject({ missing: true, species: [] });
+    expect(report.find((r) => r.gen === 'sv' && r.format === 'ZU')).toMatchObject({ missing: false, species: ['Wobbuffet'] });
+  });
+
+  it('uses Gen 8 sets last, marks their names, and only for Pokemon with nothing from Gen 9', () => {
+    const { payloads, report } = buildAllBundles({
+      sv: { ZU: { Wobbuffet: { Zu: set('Counter') } } },
+      ss: {
+        'National Dex': { Wobbuffet: { Old: set('Mirror Coat') }, Ampharos: { Old: set('Thunderbolt') } },
+        ZU: { Ampharos: { Zu: set('Volt Switch') }, Delcatty: { Zu: set('Wish') } },
+      },
+    });
+
+    expect(names(payloads.natdex)).toEqual({
+      Wobbuffet: ['Zu'], // Gen 9 ZU beats Gen 8 National Dex
+      Ampharos: ['[Gen 8] Old'], // Gen 8 National Dex beats Gen 8 ZU
+      Delcatty: ['[Gen 8] Zu'],
+    });
+    expect(report.filter((r) => r.gen === 'ss' && r.species.length).map((r) => r.format)).toEqual(['National Dex', 'ZU']);
   });
 
   it('matches format names regardless of case', () => {
     const { payloads } = buildAllBundles({ sv: { 'national dex ubers': { Mewtwo: { A: set('Psystrike') } } } });
 
     expect(Object.keys(payloads.natdex)).toEqual(['Mewtwo']);
+  });
+});
+
+describe('dropNoItem()', () => {
+  it('removes a literal "No Item" option, and the item when nothing else is left', () => {
+    expect(dropNoItem({ item: 'No Item', moves: ['A'] })).toEqual({ moves: ['A'] });
+    expect(dropNoItem({ item: ['No Item'], moves: ['A'] })).toEqual({ moves: ['A'] });
+    expect(dropNoItem({ item: ['Leftovers', 'No Item'] })).toEqual({ item: 'Leftovers' });
+    expect(dropNoItem({ item: ['Leftovers', 'Life Orb', 'No Item'] })).toEqual({ item: ['Leftovers', 'Life Orb'] });
+  });
+
+  it('leaves other sets alone', () => {
+    expect(dropNoItem({ item: 'Leftovers' })).toEqual({ item: 'Leftovers' });
+    expect(dropNoItem({ moves: ['A'] })).toEqual({ moves: ['A'] });
   });
 });
 

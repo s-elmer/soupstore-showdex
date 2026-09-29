@@ -2,11 +2,12 @@
 /**
  * Downloads strategy sets from the Smogon Dex into a normalized JSON file for `bake-soupstore-sets.mjs`.
  *
- * Usage:
+ * Usage (once per Dex gen the bake uses):
  *   node scripts/fetch-smogon-dex-sets.mjs --gen champions --species species.txt --out champions.json
  *   node scripts/fetch-smogon-dex-sets.mjs --gen sv --species species.txt --out sv.json
+ *   node scripts/fetch-smogon-dex-sets.mjs --gen ss --species species.txt --out ss.json
  *
- * * `--gen` is the Smogon Dex gen slug (`champions`, `sv`).
+ * * `--gen` is the Smogon Dex gen slug (`champions`, `sv` for Gen 9, `ss` for Gen 8).
  * * `--species` is a text file with one species name per line (e.g., the Pokemon the Soup Store client's teambuilder table lists).
  * * Each page is downloaded once & the sets of *every* format on it are kept, so the output is
  *   `{ [format name]: { [species]: { [set name]: set } } }`. Pass `--format` (repeatable) to keep only some formats.

@@ -1,6 +1,6 @@
 {
   "name": "soupstore-showdex",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "Showdex for the Soup Store draft league: a damage calculator built into play.soupstore.dev, with support for the Soup Store Season 4 format.",
   "author": "Keith Choison <keith@tize.io>",
   "license": "AGPL-3.0",

@@ -3,14 +3,16 @@
  * Bakes the Soup Store Season 4 preset bundles from Smogon Dex sets (see `fetch-smogon-dex-sets.mjs`).
  *
  * Usage:
- *   node scripts/bake-soupstore-sets.mjs --champions champions.json --sv sv.json --bans bans.json
+ *   node scripts/bake-soupstore-sets.mjs --champions champions.json --sv sv.json --ss ss.json --bans bans.json
  *
  * Sources, most preferred first (see `SetSourcePriority` in `lib/soupstoreSets.mjs`). A Pokemon gets the sets of the
  * first source that has any for it, & nothing from the later ones:
  *   1. Champions Battle Stadium Singles (converted from Stat Points/Level 50 to EVs/Level 100)
  *   2. Gen 9 National Dex, then National Dex Ubers, UU & RU (already EVs/Level 100)
- *   3. Gen 9 tiers: OU, Ubers, UU, RU, NU, PU & ZU
- * `--champions` & `--sv` are the outputs of `fetch-smogon-dex-sets.mjs` for the `champions` & `sv` Dex gens.
+ *   3. Gen 9 tiers: OU, Uber, UU, RU, NU, PU & ZU
+ *   4. Gen 8 (Sword/Shield): National Dex & National Dex RU, then the tiers OU, Uber, UU, RU, NU, PU & ZU, with `[Gen 8]` in front
+ *      of the set names since they were written for a different metagame
+ * `--champions`, `--sv` & `--ss` are the outputs of `fetch-smogon-dex-sets.mjs` for the `champions`, `sv` & `ss` Dex gens.
  *
  * `bans.json` (optional) is `{ species, ... }` with banned species IDs as `{ id: 1 }`, i.e., `metagameBans.soupstoreseason4` from
  * `BattleTeambuilderTable.natdexchampions` in the Soup Store client. Sets of banned species are skipped. Banned abilities, items,
@@ -30,12 +32,13 @@ const { values } = parseArgs({
   options: {
     champions: { type: 'string' },
     sv: { type: 'string' },
+    ss: { type: 'string' },
     bans: { type: 'string' },
   },
 });
 
-if (!values.champions || !values.sv) {
-  console.error('usage: bake-soupstore-sets.mjs --champions <file> --sv <file> [--bans <file>]');
+if (!values.champions || !values.sv || !values.ss) {
+  console.error('usage: bake-soupstore-sets.mjs --champions <file> --sv <file> --ss <file> [--bans <file>]');
   process.exit(1);
 }
 
@@ -43,10 +46,10 @@ const bans = values.bans ? readJson(values.bans) : {};
 const buns = readJson(`${bundlesDir}buns.json`);
 const now = new Date().toISOString();
 
-const { payloads, report } = buildAllBundles({ champions: readJson(values.champions), sv: readJson(values.sv) }, { bans });
+const { payloads, report } = buildAllBundles({ champions: readJson(values.champions), sv: readJson(values.sv), ss: readJson(values.ss) }, { bans });
 
-for (const { format, species, missing } of report) {
-  console.log(`${format}: ${missing ? 'NOT FOUND in the download (check the format name)' : `${species.length} new species`}`);
+for (const { gen, format, species, missing } of report) {
+  console.log(`${gen} ${format}: ${missing ? 'NOT FOUND in the download (check the format name)' : `${species.length} new species`}`);
 }
 
 for (const [key, payload] of Object.entries(payloads)) {
