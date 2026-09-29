@@ -1,0 +1,13 @@
+{
+  "addons": {
+    "showdex@soupstore.dev": {
+      "updates": [
+        {
+          "version": "1.4.3",
+          "update_link": "https://github.com/s-elmer/soupstore-showdex/releases/download/v1.4.3/soupstore-showdex-1.4.3.xpi",
+          "update_hash": "sha256:0c8dc6532d5ea493a2ba6c769e1d40e86e90e246bb337202d3174f0c4b6d54b5"
+        }
+      ]
+    }
+  }
+}
