@@ -53,6 +53,10 @@
 
   "poke": {
     "info": {
+      "banned": {
+        "label": "Banned:",
+        "tooltip": "Not allowed in this format"
+      },
       "forme": {
         "aria": "Pokémon Selector",
         "empty": "$t(pokedex:species.nopokemon)",

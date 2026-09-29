@@ -1,16 +1,16 @@
 {
-  "name": "showdex",
+  "name": "soupstore-showdex",
   "version": "1.4.2",
-  "description": "Pokémon Showdown extension that harnesses the power of parabolic calculus to strategically extract your opponents' Elo.",
+  "description": "Showdex for the Soup Store draft league: a damage calculator built into play.soupstore.dev, with support for the Soup Store Season 4 format.",
   "author": "Keith Choison <keith@tize.io>",
   "license": "AGPL-3.0",
-  "homepage": "https://github.com/doshidak/showdex",
+  "homepage": "https://github.com/s-elmer/soupstore-showdex",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/doshidak/showdex.git"
+    "url": "git+https://github.com/s-elmer/soupstore-showdex.git"
   },
   "bugs": {
-    "url": "https://github.com/doshidak/showdex/issues"
+    "url": "https://github.com/s-elmer/soupstore-showdex/issues"
   },
   "private": true,
   "engines": {

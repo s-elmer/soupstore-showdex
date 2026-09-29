@@ -3,7 +3,7 @@ import slugify from 'slugify';
 import { GenLabels, SmogonDexFormatSlugs } from '@showdex/consts/dex';
 import { env } from '@showdex/utils/core';
 import { logger } from '@showdex/utils/debug';
-import { getDexForFormat, getGenlessFormat } from '@showdex/utils/dex';
+import { getDexForFormat, getGenlessFormat, usesChampionsData } from '@showdex/utils/dex';
 
 export type SmogonDexCategory =
   | 'pokemon'
@@ -72,7 +72,7 @@ export const openSmogonDex = (
 
   // update (2026/09/12): Champions formats run on gen 9, but live under their own `champions` gen on the Smogon Dex
   // (e.g., https://www.smogon.com/dex/champions/pokemon/baxcalibur/), not `sv`
-  const champions = typeof format === 'string' && format.includes('champions');
+  const champions = typeof format === 'string' && usesChampionsData(format);
   const { slug: genSlug } = (champions && { slug: 'champions' }) || GenLabels[gen] || {};
 
   if (!genSlug || !name) {

@@ -1,3 +1,45 @@
+# Soup Store Showdex
+
+A fork of [Showdex](https://github.com/doshidak/showdex) for the [Soup Store](https://soupstore.dev) draft league. It runs only on the league's client at **https://play.soupstore.dev** (it does nothing on the official Pokémon Showdown) and supports the **[Gen 9] Soup Store Season 4** format: Champions data and mechanics with mainline Level 100 EVs/IVs, no Tera, and the league's banlist.
+
+## Install
+
+Download the latest build from the [releases page](https://github.com/s-elmer/soupstore-showdex/releases).
+
+- **Chrome, Edge, Brave and other Chromium browsers:** unzip the `*.chrome.zip`, open `chrome://extensions`, turn on *Developer mode*, choose *Load unpacked* and select the unzipped folder.
+- **Firefox:** open the `*.xpi` file from the release in Firefox (drag it into the window) and confirm the install. It's signed by Mozilla, so it installs in regular Firefox, and Firefox then updates it by itself when a new release is published (Firefox checks for extension updates about once a day).
+
+Reload play.soupstore.dev after installing.
+
+## What's different from Showdex
+
+- Only matches `play.soupstore.dev`, and uses its own storage and IDs so it can't clash with the official Showdex.
+- Season 4 uses the Champions dex and calc mechanics but mainline stats (Level 100, EVs, IVs), and hides Tera.
+- Banned abilities, items and moves stay visible instead of being removed: their fields turn red, a "Banned:" notice lists them (including banned combinations like a Mega Stone + move), and they sit in a *Banned* group in the dropdowns so you can swap to another option. This needs the ban tables from the Soup Store client's build (`metagame*Bans`); against older builds nothing is marked.
+- Opposing Pokémon are auto-filled from bundled sets: Smogon Dex Champions Battle Stadium Singles first (converted to EVs and Level 100), then Gen 9 National Dex Singles. Banned abilities, items and moves are kept in these sets and marked as banned. No sets or usage stats are downloaded at runtime. To refresh them, see `scripts/fetch-smogon-dex-sets.mjs` and `scripts/bake-soupstore-sets.mjs`.
+- Remote Bakedex downloads are turned off.
+- It loads two things from outside the page: the Work Sans and Fira Code fonts from Google Fonts, and (only for formats other than Soup Store's, in Firefox) preset data from `pkmn.github.io`. The client's Content Security Policy has to allow these (`soupstore-ps-client`, `soupstore/Caddyfile`), or the fonts fall back to the browser's defaults.
+
+## Releasing
+
+1. Bump `version` in `package.json` (Mozilla refuses to sign a version it has already signed) and commit it.
+2. Push a tag that matches it, e.g. `v1.4.3` for version `1.4.3`.
+
+`.github/workflows/release.yml` then checks the tag matches the version, runs the tests, builds the Chrome and Firefox packages, signs the Firefox one with Mozilla (free "unlisted" signing, no review by a person, takes a few minutes) and attaches the Chrome `.zip` and the signed Firefox `.xpi` to a GitHub Release.
+
+Signing needs two repository secrets, from https://addons.mozilla.org/developers/addon/api/key/: `WEB_EXT_API_KEY` (the JWT issuer) and `WEB_EXT_API_SECRET` (the JWT secret). The workflow fails early with a message if they're missing.
+
+The workflow also publishes `updates.json` to the `firefox-updates` branch (created on the first release; only the workflow writes to it). The Firefox build's manifest points at it through `update_url`, which is how installed copies find new versions. It lists every released version with a link to its signed `.xpi` on the GitHub Release and its SHA-256 hash. Two things to know:
+
+- Only copies installed from a build that contains the `update_url` update themselves, so the first Firefox release players install is the one that has it.
+- The URL is `https://raw.githubusercontent.com/s-elmer/soupstore-showdex/firefox-updates/updates.json`. If the repo is renamed or moved, change `update_url` in `src/manifest.json` and release again, or existing installs stop updating.
+
+Chrome has no equivalent: the zip is loaded unpacked, so it is updated by hand.
+
+---
+
+# Showdex (upstream README)
+
 <p align="center">
   <img alt="showdex-icon" width="250px" src="./src/assets/favicons/showdex-1024.png">
 </p>

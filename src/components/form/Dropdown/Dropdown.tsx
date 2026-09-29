@@ -82,6 +82,8 @@ export interface DropdownProps extends FieldRenderProps<DropdownValue, HTMLInput
   hideSelections?: boolean;
   autoFocus?: boolean;
   highlight?: boolean;
+  /** Marks the current value as banned in the format (red), e.g., a banned ability, item or move. */
+  banned?: boolean;
   loading?: boolean;
   disabled?: boolean;
   onContextMenu?: (event: React.MouseEvent<HTMLDivElement>) => void;
@@ -121,6 +123,7 @@ export const Dropdown = React.forwardRef<SelectInstance, DropdownProps>(({
   hideSelections,
   autoFocus,
   highlight,
+  banned,
   loading,
   input,
   meta,
@@ -262,6 +265,7 @@ export const Dropdown = React.forwardRef<SelectInstance, DropdownProps>(({
             hasValue && styles.hasValue,
             (meta?.active || active) && styles.active,
             highlight && styles.highlight,
+            banned && styles.banned,
             disabled && styles.disabled,
             className,
           )}

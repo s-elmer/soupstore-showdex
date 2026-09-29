@@ -259,6 +259,19 @@ $group-heading-dark-background-color: colors.$gray-darker;
     }
   }
 
+  // banned in the format (e.g., a banned ability, item or move in Soup Store Season 4)
+  &.banned {
+    .light & {
+      background-color: color.alpha(colors.$red, 0.16);
+      box-shadow: 0 0 1px color.alpha(color.shade(colors.$red, 15%), 0.95), 0 0 3px color.alpha(colors.$red, 0.5);
+    }
+
+    .dark & {
+      background-color: color.alpha(colors.$red, 0.2);
+      box-shadow: 0 0 1px color.alpha(colors.$red, 0.95), 0 0 3px color.alpha(colors.$red, 0.5);
+    }
+  }
+
   &.rtl {
     direction: rtl;
   }

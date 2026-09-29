@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Mozilla refuses to sign a version it has already signed, so every release needs a new version in package.json
+      - name: Check the tag matches package.json
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} doesn't match the version in package.json (v${version}). Bump the version, commit, and tag again."
+            exit 1
+          fi
+
+      - name: Check the Firefox signing secrets are set
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        run: |
+          if [ -z "${WEB_EXT_API_KEY}" ] || [ -z "${WEB_EXT_API_SECRET}" ]; then
+            echo "::error::Add the WEB_EXT_API_KEY (JWT issuer) and WEB_EXT_API_SECRET (JWT secret) repository secrets from addons.mozilla.org/developers/addon/api/key/"
+            exit 1
+          fi
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+
+      - run: pnpm test
+
+      - run: pnpm build:chrome:fast
+
+      - run: pnpm build:firefox:fast
+
+      # Firefox only installs extensions signed by Mozilla. "Unlisted" signing is free, doesn't publish anything on
+      # addons.mozilla.org & takes a few minutes. Writes the signed .xpi to dist/signed/.
+      - name: Sign the Firefox build with Mozilla
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        run: |
+          npx --yes web-ext@8 sign \
+            --source-dir dist/firefox \
+            --channel unlisted \
+            --artifacts-dir dist/signed \
+            --approval-timeout 1200000
+          # stable name, so the update file can link to it
+          version=$(node -p "require('./package.json').version")
+          mv dist/signed/*.xpi "dist/signed/soupstore-showdex-${version}.xpi"
+          ls -l dist/signed
+
+      # only the signed .xpi is attached; the unsigned dist/*.firefox.xpi can't be installed in regular Firefox
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.chrome.zip
+            dist/signed/*.xpi
+
+      # Installed copies of the extension check the update_url in the manifest (updates.json on the firefox-updates
+      # branch, which only this step writes to) & update themselves to the newest version listed there.
+      - name: Publish the Firefox update file
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          xpi="soupstore-showdex-${version}.xpi"
+          link="https://github.com/${REPO}/releases/download/${GITHUB_REF_NAME}/${xpi}"
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+
+          if git ls-remote --exit-code --heads "${remote}" firefox-updates > /dev/null; then
+            git clone --depth 1 --branch firefox-updates "${remote}" updates
+          else
+            git init -b firefox-updates updates
+            git -C updates remote add origin "${remote}"
+          fi
+
+          node scripts/update-manifest.mjs \
+            --file updates/updates.json \
+            --id showdex@soupstore.dev \
+            --version "${version}" \
+            --link "${link}" \
+            --xpi "dist/signed/${xpi}"
+
+          git -C updates config user.name "github-actions[bot]"
+          git -C updates config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C updates add updates.json
+          git -C updates commit -m "Firefox update file for ${GITHUB_REF_NAME}"
+          git -C updates push origin firefox-updates

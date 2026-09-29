@@ -101,6 +101,34 @@
         "created": "2026-09-14T06:04:49.266Z",
         "updated": "2026-09-14T06:06:39.984Z",
         "disabled": false
+      },
+      "5a7b3c10-50a1-4e1e-9c1a-0b55d0e0a001": {
+        "id": "5a7b3c10-50a1-4e1e-9c1a-0b55d0e0a001",
+        "ntt": "presets",
+        "name": "Soup Store Season 4 (Smogon Champions BSS)",
+        "label": "S4 Champions BSS",
+        "author": "Smogon",
+        "ext": null,
+        "gen": 9,
+        "format": "soupstoreseason4",
+        "desc": "Smogon Dex Champions Battle Stadium Singles sets, converted to EVs and Level 100 for Soup Store Season 4.",
+        "created": "2026-09-28T21:13:30.285Z",
+        "updated": "2026-09-28T21:45:18.554Z",
+        "disabled": false
+      },
+      "5a7b3c10-50a1-4e1e-9c1a-0b55d0e0a002": {
+        "id": "5a7b3c10-50a1-4e1e-9c1a-0b55d0e0a002",
+        "ntt": "presets",
+        "name": "Soup Store Season 4 (Smogon Gen 9 National Dex)",
+        "label": "S4 NatDex",
+        "author": "Smogon",
+        "ext": null,
+        "gen": 9,
+        "format": "soupstoreseason4",
+        "desc": "Smogon Dex Gen 9 National Dex Singles sets for Soup Store Season 4.",
+        "created": "2026-09-28T21:13:30.285Z",
+        "updated": "2026-09-28T21:45:18.554Z",
+        "disabled": false
       }
     },
     "supporters": {

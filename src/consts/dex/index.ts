@@ -11,3 +11,4 @@ export * from './statuses';
 export * from './terrain';
 export * from './types';
 export * from './weather';
+export * from './soupstore';

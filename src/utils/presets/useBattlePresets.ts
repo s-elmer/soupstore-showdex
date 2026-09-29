@@ -8,10 +8,12 @@ import {
   usePokemonRandomsPresetQuery,
   usePokemonRandomsStatsQuery,
 } from '@showdex/redux/services';
-import { useCalcdexSettings, useTeamdexPresets } from '@showdex/redux/store';
+import { useCalcdexSettings, useShowdexBundles, useTeamdexPresets } from '@showdex/redux/store';
+import { SoupStoreBundleIds } from '@showdex/consts/dex';
 import { logger } from '@showdex/utils/debug';
 import {
   detectGenFromFormat,
+  detectSoupStoreFormat,
   getGenfulFormat,
   getGenlessFormat,
   legalLockedFormat,
@@ -186,6 +188,10 @@ export const useBattlePresets = (
   } = useCalcdexSettings();
 
   const teamdexPresets = useTeamdexPresets();
+  const bundles = useShowdexBundles();
+
+  // changes once the bundle catalog is loaded into Redux, so the bundle query doesn't keep its earlier empty result
+  const catalogKey = React.useMemo(() => Object.keys(bundles?.buns?.presets || {}).sort().join(','), [bundles?.buns?.presets]);
 
   const maxAge: Duration = typeof maxPresetAge === 'number' && maxPresetAge > 0
     ? { days: maxPresetAge }
@@ -197,7 +203,15 @@ export const useBattlePresets = (
 
   // Champions (non-Randoms) formats aren't published by the pkmn Format Sets/Stats APIs -- their presets come
   // from bakedex usage bundles instead -- so don't even try (it'd just 404)
-  const champions = !randoms && !!genlessFormat?.includes('champions');
+  // (same goes for Soup Store formats, whose sets are baked into bundled presets, see SoupStoreBundleIds)
+  const soupStore = detectSoupStoreFormat(format);
+  const champions = !randoms && (!!genlessFormat?.includes('champions') || soupStore);
+
+  const bundleIds = React.useMemo(() => (
+    soupStore
+      ? [...SoupStoreBundleIds, ...(includePresetsBundles || []).filter((id) => !SoupStoreBundleIds.includes(id))]
+      : includePresetsBundles
+  ), [includePresetsBundles, soupStore]);
 
   const teambuilderPresets = React.useMemo(() => (
     includeTeambuilder !== 'never'
@@ -216,7 +230,7 @@ export const useBattlePresets = (
   ]);
 
   const shouldSkipAny = disabled || !gen || !genlessFormat;
-  const shouldSkipBundles = shouldSkipAny || !includePresetsBundles?.length;
+  const shouldSkipBundles = shouldSkipAny || !bundleIds?.length;
   const shouldSkipFormats = shouldSkipAny || randoms || champions || !downloadSmogonPresets;
   const shouldSkipFormatStats = shouldSkipAny || randoms || champions || !downloadUsageStats;
   const shouldSkipRandoms = shouldSkipAny || !randoms || !downloadRandomsPresets;
@@ -228,7 +242,8 @@ export const useBattlePresets = (
     isLoading: bundledPresetsLoading,
   } = usePokemonBundledPresetQuery({
     gen,
-    bundleIds: includePresetsBundles,
+    bundleIds,
+    catalogKey,
   }, {
     skip: shouldSkipBundles,
   });

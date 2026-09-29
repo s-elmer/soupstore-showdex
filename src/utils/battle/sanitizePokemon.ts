@@ -14,6 +14,7 @@ import {
   detectGenFromFormat,
   detectLegacyGen,
   getDexForFormat,
+  isFormatBanned,
 } from '@showdex/utils/dex';
 import { flattenAlts } from '@showdex/utils/presets';
 import { detectPlayerKeyFromPokemon } from './detectPlayerKey';
@@ -413,7 +414,8 @@ export const sanitizePokemon = <
   );
 
   if (updateDirtyAbility) {
-    [sanitizedPokemon.dirtyAbility] = abilitiesSource;
+    // in formats with banned abilities (e.g., Soup Store's Sand Veil), guess the first ability that's actually legal
+    sanitizedPokemon.dirtyAbility = abilitiesSource.find((a) => typeof format !== 'string' || !isFormatBanned(format, 'ability', a)) || abilitiesSource[0];
   }
 
   // determine the toggle state of the toggleable ability, if applicable

@@ -1,5 +1,6 @@
 import { nonEmptyObject } from '@showdex/utils/core';
 import { detectGenFromFormat } from './detectGenFromFormat';
+import { detectSoupStoreFormat } from './formatFlags';
 
 /**
  * Known mappings of formats to the `BattleTeambuilderTableFormat`.
@@ -60,6 +61,16 @@ export const guessTableFormatKey = (
 ): Showdown.BattleTeambuilderTableFormat => {
   if (!format || !nonEmptyObject(BattleTeambuilderTable)) {
     return null;
+  }
+
+  // Soup Store formats (Champions mechanics + National Dex Pokemon & learnsets) are built by the Soup Store client
+  // into the 'natdexchampions' table, which has the NatDex species the 'champions' table lacks
+  if (detectSoupStoreFormat(format)) {
+    const key = ['natdexchampions', 'champions'].find((k) => k in BattleTeambuilderTable);
+
+    if (key) {
+      return key as Showdown.BattleTeambuilderTableFormat;
+    }
   }
 
   // Champions (incl. NatDex Champions) species -- e.g. the Mega formes -- live in their own 'champions'

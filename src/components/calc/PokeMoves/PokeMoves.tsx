@@ -29,7 +29,13 @@ import { type CalcdexMoveOverride, type CalcdexPokemon } from '@showdex/interfac
 import { useColorScheme, useColorTheme, useGlassyTerrain } from '@showdex/redux/store';
 import { detectToggledMove } from '@showdex/utils/battle';
 import { calcMoveHitBasePowers, getMoveOverrideDefaults, hasMoveOverrides } from '@showdex/utils/calc';
-import { getDexForFormat, getMegaFormeForItem, hasMegaForme } from '@showdex/utils/dex';
+import {
+  getDexForFormat,
+  getMegaFormeForItem,
+  hasMegaForme,
+  isFormatBanned,
+  isTeraBanned,
+} from '@showdex/utils/dex';
 import {
   clamp,
   formatId,
@@ -127,7 +133,7 @@ export const PokeMoves = ({
   const showTeraToggle = !!pokemon?.speciesForme
     && !rules?.tera
     && gen > 8
-    && !format?.includes('champions');
+    && !isTeraBanned(format);
 
   const disableTeraToggle = !pokemon?.speciesForme
     || (!pokemon.teraType && !pokemon.dirtyTeraType)
@@ -832,6 +838,7 @@ export const PokeMoves = ({
                 options={moveOptions}
                 noOptionsMessage={t('poke.moves.slot.empty') as string}
                 filterOption={moveOptionsFilter}
+                banned={isFormatBanned(format, 'move', moveName)}
                 disabled={!pokemon?.speciesForme}
               />
             </TableGridItem>

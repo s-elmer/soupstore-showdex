@@ -10,6 +10,7 @@ import {
   flattenAlt,
   flattenAlts,
 } from '@showdex/utils/presets';
+import { partitionBannedOptions } from './partitionBannedOptions';
 
 export type CalcdexPokemonAbilityOption = DropdownOption<AbilityName>;
 
@@ -199,5 +200,5 @@ export const buildAbilityOptions = (
     });
   }
 
-  return options;
+  return partitionBannedOptions(format, 'ability', options, translateHeader('Banned'));
 };

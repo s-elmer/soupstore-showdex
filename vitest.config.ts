@@ -21,7 +21,7 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    include: ['src/**/*.{test,spec}.{ts,tsx}', 'scripts/**/*.test.mjs'],
     setupFiles: ['./vitest.setup.ts'],
     clearMocks: true,
   },
